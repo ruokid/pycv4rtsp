@@ -33,28 +33,27 @@ class RTSCapture(cv2.VideoCapture):
     def create(url, maxsize=10):
         rtscap = RTSCapture(url)
         rtscap.__cur_frame__ = None
-        rtscap.frame_receiver = threading.Thread(target=rtscap.put_frame, daemon=True)
+        rtscap.frame_receiver = threading.Thread(target=rtscap.update, daemon=True)
         return rtscap
 
     def isStarted(self):
         ret = self.isOpened()
-        if ret:
+        if ret and hasattr(self, "frame_receiver"):
             ret = self.frame_receiver.is_alive()
 
         return ret
 
-    def put_frame(self):
+    def update(self):
         while self.isOpened():
             ok, frame = self.read()
             if not ok:
                 break
             self.__cur_frame__ = frame
 
-    def read_frame(self):
+    def read_latest_frame(self):
         frame = self.__cur_frame__
-        ret = frame is not None
         self.__cur_frame__ = None
-        return ret, frame
+        return frame is not None, frame
 
     def start_read(self):
         self.frame_receiver.start()
@@ -64,7 +63,7 @@ if __name__ == '__main__':
     rtscap.start_read()
     
     while rtscap.isStarted():
-        ok, frame = rtscap.read_frame()
+        ok, frame = rtscap.read_latest_frame()
         if not ok:
             if cv2.waitKey(100) & 0xFF == ord('q'): break
             continue
