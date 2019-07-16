@@ -1,4 +1,4 @@
-# pycv_rtscap
+# opencv-python RTSP
 
 使用方法
 
