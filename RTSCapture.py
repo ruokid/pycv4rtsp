@@ -19,20 +19,20 @@
 import threading
 import cv2
 
-
-
 class RTSCapture(cv2.VideoCapture):
     """Real Time Streaming Capture.
     """
 
     _cur_frame = None
     _reading = False
+    _isRTS = False
 
     @staticmethod
     def create(url, maxsize=10):
         """这个类必须使用 RTSCapture.create 方法创建，请不要直接实例化"""
         rtscap = RTSCapture(url)
         rtscap.frame_receiver = threading.Thread(target=rtscap.recv_frame, daemon=True)
+        rtscap._isRTS = str(url).startswith(("rtsp://", "rtmp://"))
         return rtscap
 
     def isStarted(self):
@@ -47,7 +47,7 @@ class RTSCapture(cv2.VideoCapture):
             self._cur_frame = frame
         self._reading = False
 
-    def read_latest_frame(self):
+    def read2(self):
         """读取最新视频帧
         返回结果格式与 VideoCapture.read() 一样
         """
@@ -59,6 +59,7 @@ class RTSCapture(cv2.VideoCapture):
         """启动子线程读取视频帧"""
         self._reading = True
         self.frame_receiver.start()
+        self.read_latest_frame = self.read2 if self._isRTS else self.read
 
     def stop_read(self):
         """退出子线程方法"""
