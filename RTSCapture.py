@@ -37,7 +37,10 @@ class RTSCapture(cv2.VideoCapture):
 
     def isStarted(self):
         """替代 VideoCapture.isOpened() """
-        return self.frame_receiver.is_alive() if self.isOpened() else False
+        ok = self.isOpened()
+        if ok and self._reading:
+            ok = self.frame_receiver.is_alive()
+        return ok
 
     def recv_frame(self):
         """子线程读取最新视频帧方法"""
@@ -58,13 +61,13 @@ class RTSCapture(cv2.VideoCapture):
     def start_read(self):
         """启动子线程读取视频帧"""
         self._reading = True
-        self.frame_receiver.start()
+        if self._isRTS: self.frame_receiver.start()
         self.read_latest_frame = self.read2 if self._isRTS else self.read
 
     def stop_read(self):
         """退出子线程方法"""
         self._reading = False
-        self.frame_receiver.join()
+        if self.frame_receiver.is_alive(): self.frame_receiver.join()
 
 
 
