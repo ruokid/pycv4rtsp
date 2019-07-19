@@ -38,7 +38,7 @@ class RTSCapture(cv2.VideoCapture):
     def isStarted(self):
         """替代 VideoCapture.isOpened() """
         ok = self.isOpened()
-        if ok and self._reading:
+        if ok and self._isRTS and self._reading:
             ok = self.frame_receiver.is_alive()
         return ok
 
