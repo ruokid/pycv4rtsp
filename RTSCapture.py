@@ -25,20 +25,21 @@ class RTSCapture(cv2.VideoCapture):
 
     _cur_frame = None
     _reading = False
-    _isRTS = False
 
     @staticmethod
-    def create(url, maxsize=10):
+    def create(url):
         """这个类必须使用 RTSCapture.create 方法创建，请不要直接实例化"""
         rtscap = RTSCapture(url)
         rtscap.frame_receiver = threading.Thread(target=rtscap.recv_frame, daemon=True)
-        rtscap._isRTS = str(url).startswith(("rtsp://", "rtmp://"))
+        if isinstance(url, str) and url.startswith(("rtsp://", "rtmp://")):
+            rtscap._reading = True
+
         return rtscap
 
     def isStarted(self):
         """替代 VideoCapture.isOpened() """
         ok = self.isOpened()
-        if ok and self._isRTS and self._reading:
+        if ok and self._reading:
             ok = self.frame_receiver.is_alive()
         return ok
 
@@ -60,9 +61,8 @@ class RTSCapture(cv2.VideoCapture):
 
     def start_read(self):
         """启动子线程读取视频帧"""
-        self._reading = True
-        if self._isRTS: self.frame_receiver.start()
-        self.read_latest_frame = self.read2 if self._isRTS else self.read
+        self.frame_receiver.start()
+        self.read_latest_frame = self.read2 if self._reading else self.read
 
     def stop_read(self):
         """退出子线程方法"""
