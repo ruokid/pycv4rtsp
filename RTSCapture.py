@@ -21,17 +21,24 @@ import cv2
 
 class RTSCapture(cv2.VideoCapture):
     """Real Time Streaming Capture.
+    这个类必须使用 RTSCapture.create 方法创建，请不要直接实例化
     """
 
     _cur_frame = None
     _reading = False
+    schemes = ["rtsp://", "rtmp://"] #用于识别实时流
 
     @staticmethod
-    def create(url):
-        """这个类必须使用 RTSCapture.create 方法创建，请不要直接实例化"""
+    def create(url, *schemes):
+        """实例化&初始化
+        rtscap = RTSCapture.create("rtsp://example.com/live/1")
+        or
+        rtscap = RTSCapture.create("http://example.com/live/1.m3u8", "http://")
+        """
         rtscap = RTSCapture(url)
         rtscap.frame_receiver = threading.Thread(target=rtscap.recv_frame, daemon=True)
-        if isinstance(url, str) and url.startswith(("rtsp://", "rtmp://")):
+        rtscap.schemes.extend(schemes)
+        if isinstance(url, str) and url.startswith(rtscap.schemes):
             rtscap._reading = True
 
         return rtscap
@@ -75,10 +82,10 @@ import sys
 
 if __name__ == '__main__':
     rtscap = RTSCapture.create(sys.argv[1])
-    rtscap.start_read()
+    rtscap.start_read() #启动子线程并改变 read_latest_frame 的指向
     
     while rtscap.isStarted():
-        ok, frame = rtscap.read_latest_frame()
+        ok, frame = rtscap.read_latest_frame() #read_latest_frame() 替代 read()
         if not ok:
             if cv2.waitKey(100) & 0xFF == ord('q'): break
             continue
