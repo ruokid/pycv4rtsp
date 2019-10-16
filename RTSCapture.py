@@ -14,6 +14,8 @@
 
 注意：这个处理方式只是防止处理（解码、计算或播放）速度跟不上输入速度
 而导致程序崩溃或者后续视频画面花屏，在读取时还是丢弃一些视频帧
+
+这个在高性能机器上也没啥必要 [/doge]
 """
 
 import threading
@@ -38,8 +40,11 @@ class RTSCapture(cv2.VideoCapture):
         rtscap = RTSCapture(url)
         rtscap.frame_receiver = threading.Thread(target=rtscap.recv_frame, daemon=True)
         rtscap.schemes.extend(schemes)
-        if isinstance(url, str) and url.startswith(rtscap.schemes):
+        if isinstance(url, str) and url.startswith(tuple(rtscap.schemes)):
             rtscap._reading = True
+        elif isinstance(url, int):
+            # 这里可能是本机设备
+            pass
 
         return rtscap
 
