@@ -86,20 +86,23 @@ class RTSCapture(cv2.VideoCapture):
 import sys
 
 if __name__ == '__main__':
+    if len(sys.argv) < 1:
+        print("usage:")
+        print('python3 RTSCapture.py "rtsp://xxx"')
+        sys.exit()
+
     rtscap = RTSCapture.create(sys.argv[1])
     rtscap.start_read() #启动子线程并改变 read_latest_frame 的指向
     
     while rtscap.isStarted():
         ok, frame = rtscap.read_latest_frame() #read_latest_frame() 替代 read()
+        if cv2.waitKey(100) & 0xFF == ord('q'):
+            break
         if not ok:
-            if cv2.waitKey(100) & 0xFF == ord('q'): break
             continue
 
         # 帧处理代码写这里
         cv2.imshow("cam", frame)
-
-        if cv2.waitKey(100) & 0xFF == ord('q'):
-            break
 
     rtscap.stop_read()
     rtscap.release()
