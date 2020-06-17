@@ -86,7 +86,7 @@ class RTSCapture(cv2.VideoCapture):
 import sys
 
 if __name__ == '__main__':
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print("usage:")
         print('python3 RTSCapture.py "rtsp://xxx"')
         sys.exit()
